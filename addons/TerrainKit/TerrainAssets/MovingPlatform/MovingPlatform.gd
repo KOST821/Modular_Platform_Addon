@@ -1,0 +1,161 @@
+@tool
+@icon("moving_platform.svg")
+## A platform that follows a specific [Path2D] with optional smooth acceleration.
+extends Platform
+class_name MovingPlatform
+
+enum MovementType\
+{
+	## Classic LINEAR movement.
+	CLASSIC,
+	## Accelerated movement.
+	ACCELERATED,
+	## Graph-based movement.
+	GRAPH
+}
+
+@export_category("Platform Movement")
+## The speed at which the platform will move if acceleration is disabled.
+@export_custom(PROPERTY_HINT_NONE, "suffix:px/s") var speed: float = 150.0
+## The [Path2D] the platform will follow. Must be assigned for movement to work.
+@export var path: Path2D
+
+@export var movement_type: MovementType = MovementType.CLASSIC:
+	set(type):
+		movement_type = type
+		# Change internal state ONLY when the user actually changes the dropdown
+		acc_acceleration_enable = (type == MovementType.ACCELERATED)
+		graph_movement_enable = (type == MovementType.GRAPH)
+		notify_property_list_changed()
+
+## The time (in seconds) the platform rests before moving again.
+@export_custom(PROPERTY_HINT_NONE, "suffix:sec") var wait_time: float = 1.0 # Rest time at ends
+
+@export_category("Graph Modified")
+## The curve that the movement will follow.
+@export var graph:Curve
+
+var sample_point:float = 0.0
+
+var _path_follow:PathFollow2D = null
+var _moving_forward: bool = true
+
+var has_error: bool = false
+
+#--------------------TRIGGERS-------------------#
+## If [b]enabled[/b], the platform is accelerating smoothly between ends.
+var acc_acceleration_enable: bool = false
+## If [b]enabled[/b], the platform is moved like a the graph.
+var graph_movement_enable: bool = false
+
+func _enter_tree() -> void:
+	if Engine.is_editor_hint():
+		if not (self as Node) is AnimatableBody2D:
+			has_error = true
+		else:
+			has_error = false
+	update_configuration_warnings()
+
+func _get_configuration_warnings() -> PackedStringArray:
+	var warnings = []
+	if has_error:
+		warnings.append("MovePlatform MUST BE AnimatableBody2D.")
+		
+	if sprite and not (sprite is Sprite2D or sprite is AnimatedSprite2D):
+		warnings.append("Sprite MUST be a Sprite2D or an AnimatedSprite2D.")
+	
+	if texture != null and sprite is AnimatedSprite2D:
+		warnings.append("Texture assigned, but sprite is AnimatedSprite2D. Use SpriteFrames.")
+		
+	if collision_shape != null and collision_shape.shape == null:
+		warnings.append("CollisionShape2D is missing a Shape2D resource.")
+		
+	return warnings
+
+func _validate_property(property: Dictionary) -> void:
+	match movement_type:
+		MovementType.CLASSIC:
+			if property.name == "graph":
+				property.usage = PROPERTY_USAGE_NO_EDITOR
+		MovementType.ACCELERATED:
+			if property.name == "graph":
+				property.usage = PROPERTY_USAGE_NO_EDITOR
+		MovementType.GRAPH:
+			if property.name == "wait_time":
+				property.usage = PROPERTY_USAGE_NO_EDITOR
+
+func _from_start() -> void:
+	set_process(false)
+	if not Engine.is_editor_hint():
+		_create_path_follow()
+		if acc_acceleration_enable:
+			set_physics_process(false)
+			start_patrol()
+		else:
+			set_physics_process(true)
+
+func _create_path_follow() -> void:
+	if not path:
+		push_error("No path added to, ",self," !")
+		return
+	_path_follow = PathFollow2D.new()
+	_path_follow.name = "PathShower"
+	path.add_child(_path_follow)
+	var remote:RemoteTransform2D = RemoteTransform2D.new()
+	remote.name = "PositionTransferer"
+	remote.update_position = true
+	remote.update_rotation = false
+	remote.update_scale = false
+	_path_follow.progress = 0.0
+	_path_follow.loop = false
+	_path_follow.add_child(remote)
+	remote.remote_path = remote.get_path_to(self)
+
+func _physics_process(delta: float) -> void:
+	if Engine.is_editor_hint(): return
+	
+	if graph_movement_enable:
+		if not graph:
+			push_error("MovementType is GRAPH, but no Curve is assigned!")
+			set_physics_process(false)
+			return
+	
+		# Step 1: Calculate the exact mathematical step for this frame
+		var time_step = delta / get_travel_duration()
+		
+		# Step 2: Move the sample point back and forth between 0.0 and 1.0
+		if _moving_forward:
+			sample_point += time_step
+			if sample_point >= 1.0:
+				sample_point = 1.0
+				_moving_forward = false
+		else:
+			sample_point -= time_step
+			if sample_point <= 0.0:
+				sample_point = 0.0
+				_moving_forward = true
+				
+		# Step 3: Apply the Curve's Y-value directly to the PathFollower
+		_path_follow.progress_ratio = graph.sample(sample_point)
+
+func get_travel_duration() -> float:
+	if not path or not path.curve: return 1.0
+	return path.curve.get_baked_length() / speed
+
+func start_patrol() -> void:
+	var travel_time = get_travel_duration()
+	var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	tween.set_loops()
+	
+	# If CLASSIC, use LINEAR (steady speed). If ACCELERATED, use SINE (smooth ramp up/down).
+	var trans_type = Tween.TRANS_SINE if acc_acceleration_enable else Tween.TRANS_LINEAR
+	
+	tween.tween_property(_path_follow, "progress_ratio", 1.0, travel_time)\
+		.set_trans(trans_type)\
+		.set_ease(Tween.EASE_IN_OUT)
+	tween.tween_interval(wait_time)
+	
+	tween.tween_property(_path_follow, "progress_ratio", 0.0, travel_time)\
+		.set_trans(trans_type)\
+		.set_ease(Tween.EASE_IN_OUT)
+	tween.tween_interval(wait_time)

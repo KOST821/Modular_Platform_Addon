@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://bywrwg0oldeq1"]
+
+[ext_resource type="Script" uid="uid://rkdbnycw1s6b" path="res://addons/TerrainKit/TerrainAssets/BreakPlatform/BreakPlatform.gd" id="1_eanuk"]
+
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eanuk"]
+resource_local_to_scene = true
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sw7l4"]
+resource_local_to_scene = true
+size = Vector2(30, 3)
+
+[node name="BreakPlatform" type="StaticBody2D" unique_id=589806351 node_paths=PackedStringArray("area", "area_collision_shape", "sprite", "collision_shape")]
+script = ExtResource("1_eanuk")
+area = NodePath("SearchForPressed")
+area_collision_shape = NodePath("SearchForPressed/CollisionShape2D")
+sprite = NodePath("Sprite2D")
+collision_shape = NodePath("CollisionShape2D")
+metadata/_custom_type_script = "uid://rkdbnycw1s6b"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=828531102]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=175417079]
+shape = SubResource("RectangleShape2D_eanuk")
+debug_color = Color(0, 0.6, 0.7019608, 0.41960785)
+
+[node name="SearchForPressed" type="Area2D" parent="." unique_id=507132942]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SearchForPressed" unique_id=9791608]
+position = Vector2(0, -17.5)
+shape = SubResource("RectangleShape2D_sw7l4")
+debug_color = Color(1, 0.6, 0.69803923, 0.41960785)
+
+[connection signal="size_changed" from="." to="." method="_update_attack_area"]
