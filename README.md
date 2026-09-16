@@ -70,3 +70,9 @@ This pack includes a completely decoupled damage system. You can drop these onto
 # Documentation
 
 You can find a full [documentation here](/addons/terrain_kit/README.md)
+
+# Contribute
+
+You are all welcome to contribute!
+
+It will be a great help if you follow what I ask of you in [CONTRIBUTING.md](CONTRIBUTING.md)
