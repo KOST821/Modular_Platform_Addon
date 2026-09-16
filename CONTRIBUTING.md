@@ -1,4 +1,4 @@
-# Contributing to the Modular Platform Asset Pack
+# Contributing to the Modular Platform Addon.
 
 First off, thank you for considering contributing to this project! It is people like you who make the open-source community great.
 
