@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://exhqaqqd13u6"
-path="res://.godot/imported/icon.png-487276ed1e3a0c39cad0279d744ee560.ctex"
+uid="uid://ctwx6x40rbnip"
+path="res://.godot/imported/Hit.png-d1c8f75ca4aa09b0e35a9288db7ffe1e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://icon.png"
-dest_files=["res://.godot/imported/icon.png-487276ed1e3a0c39cad0279d744ee560.ctex"]
+source_file="res://addons/ModularPlatforms/PlatformFramework/PhysicalButton/Hit.png"
+dest_files=["res://.godot/imported/Hit.png-d1c8f75ca4aa09b0e35a9288db7ffe1e.ctex"]
 
 [params]
 

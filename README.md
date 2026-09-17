@@ -61,15 +61,12 @@ This pack includes a completely decoupled damage system. You can drop these onto
 *   **`HurtBox`:** Add this as an `Area2D` child to a node. Link it to a `HealthComponent` in the inspector. It securely receives damage.
 *   **`HitBox`:** Add this as an `Area2D` child to deal damage. Export your desired `damage` amount in the inspector. When it overlaps a `HurtBox`, damage is dealt instantly.
 
-> [!TIP]
-> These work but it is suggested to create your own or find other ones! 
-
 # Interactables
 **(Lever & PhysicalButton):** Puzzle elements designed to trigger events. The lever features smooth animation toggling, while the physical button uses tween-driven physics to physically compress when stepped on by a player or object.
 
 # Documentation
 
-You can find a full [documentation here](addons/TerrainKit/README.md)
+You can find a full [documentation here](addons/ModularPlatforms/README.md)
 
 # Contribute
 
