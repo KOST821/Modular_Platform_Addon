@@ -21,12 +21,15 @@ func _from_start() -> void:
 		size_changed.connect(_update_attack_area)
 	area.body_entered.connect(start_breaking)
 
-func start_breaking(_body: Node2D) -> void:
+func start_breaking(body: Node2D) -> void:
 	print("ok")
 	# Prevent multiple bodies from triggering the sequence multiple times
 	if _is_breaking:
 		return
-		
+	
+	if body == self:
+		return
+	
 	_is_breaking = true
 	
 	# Cleaner way to wait without manually creating/adding Timer nodes

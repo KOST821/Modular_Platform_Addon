@@ -18,7 +18,7 @@ signal toggle(is_on:bool, trigger:Node2D)
 		use_point = area
 		update_configuration_warnings()
 
-## The [Sprite2D] that holds your visual.
+## The [Sprite2D] or [AnimatedSprite2D] that holds your visual.
 @export var sprite: Node2D:
 	set(sprite2d):
 		sprite = sprite2d
@@ -36,7 +36,7 @@ func _get_configuration_warnings() -> PackedStringArray:
 	if use_point == null:
 		warnings.append('You do not have a Area2D added in "use_point".')
 	
-	return []
+	return warnings
 
 func _ready() -> void:
 	_from_start()

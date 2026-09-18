@@ -1,83 +1,105 @@
 @tool
-@icon("fan.svg")
-## A Prop that pushes a body to a direction.
-extends PropOrHazard
 class_name Fan
+extends PropOrHazard
 
 enum AIR_DIR \
 {
-	## Air pushes the body that entered it's [member Fan.air_area] up.
+	## Air pushes the body that entered it's [member Fan.wind_zone] up.
 	UP,
-	## Air pushes the body that entered it's [member Fan.air_area] down.
+	## Air pushes the body that entered it's [member Fan.wind_zone] down.
 	DOWN,
-	## Air pushes the body that entered it's [member Fan.air_area] left.
+	## Air pushes the body that entered it's [member Fan.wind_zone] left.
 	LEFT,
-	## Air pushes the body that entered it's [member Fan.air_area] right.
+	## Air pushes the body that entered it's [member Fan.wind_zone] right.
 	RIGHT
 }
 
-@export_category("Fan Essentials")
-## The Area2D that covers the piece of land the [u]Fan[/u] is hitting.
-@export var air_area:Area2D
-## In which direction the [u]Fan[/u] is pushing the bodies that air is hitting.
-@export var direction_of_air:AIR_DIR = AIR_DIR.UP
-## Force of the air.
-@export_range(0.0, 5000.0, 10.0, "or_greater", "hide_control", "suffix:px/s") var force: float = 1500.0
-## A value that is reducing the force for objects that have no [b]gravity[/b] (e.g. [Area2D]).
-@export_range(0.001, 1.0, 0.01, "prefer_slider")var non_physics_dampener: float = 0.15 
+@export_category("Wind Settings")
+## The Area2D that defines the volume of the wind stream.
+@export var wind_zone: Area2D
+## The direction the wind blows.
+@export var wind_direction: AIR_DIR = AIR_DIR.UP
+## How strong the wind pushes. To overcome gravity for CharacterBodies pushing UP, this needs to be high (e.g., 1500+).
+@export var wind_strength: float = 1500.0
+## A number that reduses the force to non physics objects like [Area2D].
+@export_range(0.01, 1.0, 0.01, "prefer_slider") var non_physics_dampener:float = 0.05
 
-var _bodies_in_air:Array[CollisionObject2D] = []
-var _dir_of_air:Vector2
+var _entities_in_wind: Array[Node2D] = []
 
 func _from_start() -> void:
-	_calculate_air_direction() # Calculate exactly once at startup.
-	
-	# 1. Detect Bodies (Player, Crates)
-	if not air_area.body_entered.is_connected(_on_body_entered_air):
-		air_area.body_entered.connect(_on_body_entered_air)
-	if not air_area.body_exited.is_connected(_on_body_exited_air):
-		air_area.body_exited.connect(_on_body_exited_air)
+	if not Engine.is_editor_hint() and wind_zone != null:
+		# Connect the signals to track what enters/leaves the wind
 		
-	# 2. Detect Areas (Fireballs, Hitboxes)
-	if not air_area.area_entered.is_connected(_on_body_entered_air):
-		air_area.area_entered.connect(_on_body_entered_air)
-	if not air_area.area_exited.is_connected(_on_body_exited_air):
-		air_area.area_exited.connect(_on_body_exited_air)
+		## Bodies
+		if !wind_zone.body_entered.is_connected(_on_entity_entered):
+			wind_zone.body_entered.connect(_on_entity_entered)
+		if !wind_zone.body_exited.is_connected(_on_entity_exited):
+			wind_zone.body_exited.connect(_on_entity_exited)
+		
+		## Areas
+		if !wind_zone.area_entered.is_connected(_on_entity_entered):
+			wind_zone.area_entered.connect(_on_entity_entered)
+		if !wind_zone.area_exited.is_connected(_on_entity_exited):
+			wind_zone.area_exited.connect(_on_entity_exited)
 
-func _calculate_air_direction() -> void:
-	match direction_of_air:
-		AIR_DIR.UP: _dir_of_air = Vector2.UP
-		AIR_DIR.DOWN: _dir_of_air = Vector2.DOWN
-		AIR_DIR.LEFT: _dir_of_air = Vector2.LEFT
-		AIR_DIR.RIGHT: _dir_of_air = Vector2.RIGHT
+func _get_configuration_warnings() -> PackedStringArray:
+	var warnings = super() # Keep the base class warnings
+	if wind_zone == null:
+		warnings.append("Fan requires a Wind Zone (Area2D) to function.")
+	return warnings
 
-func _on_body_entered_air(body: Node2D) -> void:
-	if body is CollisionObject2D and not body == self:
-		_bodies_in_air.append(body)
+func _on_entity_entered(entity: Node2D) -> void:
+	if !entity is CollisionObject2D:return
+	if not _entities_in_wind.has(entity) and entity != self:
+		_entities_in_wind.append(entity)
 
-func _on_body_exited_air(body: Node2D) -> void:
-	if _bodies_in_air.has(body):
-		_bodies_in_air.erase(body)
+func _on_entity_exited(entity: Node2D) -> void:
+	if _entities_in_wind.has(entity):
+		_entities_in_wind.erase(entity)
 
 func _physics_update(delta: float) -> void:
-	if _bodies_in_air.is_empty(): return
+	if Engine.is_editor_hint() or _entities_in_wind.is_empty():
+		return
 	
-	var push_vector = _dir_of_air * force
+	# Determine the direction vector based on the enum
+	var dir_vector: Vector2 = _calculate_air_direction()
+
+	var force: Vector2 = dir_vector * wind_strength
 	
-	for body in _bodies_in_air:
-		if body is CharacterBody2D:
-			# Dynamic Momentum Killer: Works for UP, DOWN, LEFT, and RIGHT!
-			# If the fan is pushing on an axis, and the player is moving against it, kill the momentum.
-			if _dir_of_air.y != 0 and sign(body.velocity.y) != sign(_dir_of_air.y):
-				body.velocity.y = 0
-			if _dir_of_air.x != 0 and sign(body.velocity.x) != sign(_dir_of_air.x):
-				body.velocity.x = 0
-				
-			# Apply the wind force
-			body.velocity += push_vector * delta
-		elif body is RigidBody2D:
-			# Physics objects need raw engine force applied
-			body.apply_central_force(push_vector)
-		else:
-			# Fallback for Area2D, AnimatableBody2D, etc.
-			body.global_position += (push_vector * non_physics_dampener) * delta
+	for entity in _entities_in_wind:
+		if not is_instance_valid(entity):
+			continue
+			
+		if entity is RigidBody2D:
+			# RigidBodies handle gravity internally. We just apply a continuous central force.
+			entity.apply_central_force(force)
+			
+		elif entity is CharacterBody2D:
+			# CharacterBodies require direct velocity manipulation. 
+			# This adds continuous acceleration, allowing it to fight gravity.
+			entity.velocity += force * delta
+			if wind_direction == AIR_DIR.UP and entity.is_on_floor():
+				entity.global_position.y -= 1.0
+			# 1. Break Godot's floor snapping violently.
+			# If pushing horizontally while on the floor, lift them 2 pixels into the air.
+			if (wind_direction == AIR_DIR.LEFT or wind_direction == AIR_DIR.RIGHT) and entity.is_on_floor():
+				var displacement = force * delta * delta
+				entity.global_position += displacement
+			
+		elif entity is Area2D:
+			# Areas do not have physics bodies. We manually translate them.
+			# Scaled down drastically so they don't instantly fly off screen.
+			entity.global_position += force * delta * non_physics_dampener
+			
+		elif entity is StaticBody2D:
+			# Ignored intentionally. Static bodies are fixed in space by definition. 
+			# Attempting to move them breaks physics engine assumptions.
+			pass
+
+func _calculate_air_direction() -> Vector2:
+	match wind_direction:
+		AIR_DIR.UP: return Vector2.UP
+		AIR_DIR.DOWN: return Vector2.DOWN
+		AIR_DIR.LEFT: return Vector2.LEFT
+		AIR_DIR.RIGHT: return Vector2.RIGHT
+	return Vector2.ZERO

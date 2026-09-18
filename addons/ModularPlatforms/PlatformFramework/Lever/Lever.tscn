@@ -4,11 +4,10 @@
 [ext_resource type="Texture2D" uid="uid://5x1gs2jclvch" path="res://addons/ModularPlatforms/PlatformFramework/Lever/lever.svg" id="2_s625s"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5p6vy"]
-size = Vector2(3, 16)
+size = Vector2(12.5, 16)
 
-[node name="Lever" type="Node2D" unique_id=113243033 node_paths=PackedStringArray("collision", "use_point", "sprite")]
+[node name="Lever" type="Node2D" unique_id=113243033 node_paths=PackedStringArray("use_point", "sprite")]
 script = ExtResource("1_dh1a1")
-collision = NodePath("Area2D/CollisionShape2D")
 use_point = NodePath("Area2D")
 sprite = NodePath("Sprite2D")
 

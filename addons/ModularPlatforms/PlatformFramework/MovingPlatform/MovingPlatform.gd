@@ -14,18 +14,33 @@ enum MovementType\
 	GRAPH
 }
 
+@export_tool_button("Play","Play") var play_action = _move_type
+@export_tool_button("Stop", "Stop") var stop_action = _stop
+
+func _stop() -> void:
+	set_physics_process(false)
+	if _tween and _tween.is_valid():
+		_tween.kill()
+		
+	if is_instance_valid(_path_follow):
+		_path_follow.progress_ratio = 0.0
+		
+	# Reset the Graph variables so they don't break on the next play
+	sample_point = 0.0
+	_moving_forward = true
+
+func _play_editor() -> void:
+	_move_type()
+
 @export_category("Platform Movement")
 ## The speed at which the platform will move if acceleration is disabled.
-@export_custom(PROPERTY_HINT_NONE, "suffix:px/s") var speed: float = 150.0
+@export_range(0.01, 200.0, 0.01, "hide_control", "or_greater", "suffix:px/s") var speed: float = 100.0
 ## The [Path2D] the platform will follow. Must be assigned for movement to work.
 @export var path: Path2D
 
 @export var movement_type: MovementType = MovementType.CLASSIC:
 	set(type):
 		movement_type = type
-		# Change internal state ONLY when the user actually changes the dropdown
-		acc_acceleration_enable = (type == MovementType.ACCELERATED)
-		graph_movement_enable = (type == MovementType.GRAPH)
 		notify_property_list_changed()
 
 ## The time (in seconds) the platform rests before moving again.
@@ -42,11 +57,7 @@ var _moving_forward: bool = true
 
 var has_error: bool = false
 
-#--------------------TRIGGERS-------------------#
-## If [b]enabled[/b], the platform is accelerating smoothly between ends.
-var acc_acceleration_enable: bool = false
-## If [b]enabled[/b], the platform is moved like a the graph.
-var graph_movement_enable: bool = false
+var _tween:Tween
 
 func _enter_tree() -> void:
 	if Engine.is_editor_hint():
@@ -57,7 +68,7 @@ func _enter_tree() -> void:
 	update_configuration_warnings()
 
 func _get_configuration_warnings() -> PackedStringArray:
-	var warnings = []
+	var warnings:PackedStringArray = []
 	if has_error:
 		warnings.append("MovePlatform MUST BE AnimatableBody2D.")
 		
@@ -85,19 +96,33 @@ func _validate_property(property: Dictionary) -> void:
 				property.usage = PROPERTY_USAGE_NO_EDITOR
 
 func _from_start() -> void:
+	print("from start")
 	set_process(false)
-	if not Engine.is_editor_hint():
-		_create_path_follow()
-		if acc_acceleration_enable:
-			set_physics_process(false)
-			start_patrol()
-		else:
-			set_physics_process(true)
+	
+	_move_type()
+
+func _move_type() -> void:
+	_create_path_follow()
+	
+	if movement_type == MovementType.ACCELERATED\
+	or movement_type == MovementType.CLASSIC:
+		set_physics_process(false)
+		start_patrol()
+	else:
+		if _tween and _tween.is_valid():
+			_tween.kill()
+		set_physics_process(true)
 
 func _create_path_follow() -> void:
+	if is_instance_valid(_path_follow):
+		_path_follow.name = "DeletedPathShower"
+		_path_follow.queue_free()
+		_path_follow = null
+	
 	if not path:
 		push_error("No path added to, ",self," !")
 		return
+	
 	_path_follow = PathFollow2D.new()
 	_path_follow.name = "PathShower"
 	path.add_child(_path_follow)
@@ -112,9 +137,13 @@ func _create_path_follow() -> void:
 	remote.remote_path = remote.get_path_to(self)
 
 func _physics_process(delta: float) -> void:
-	if Engine.is_editor_hint(): return
 	
-	if graph_movement_enable:
+	if movement_type == MovementType.GRAPH:
+		if not path:
+			push_error("MovementType is GRAPH, but no Path2D is assigned!")
+			set_physics_process(false)
+			return
+			
 		if not graph:
 			push_error("MovementType is GRAPH, but no Curve is assigned!")
 			set_physics_process(false)
@@ -143,19 +172,22 @@ func get_travel_duration() -> float:
 	return path.curve.get_baked_length() / speed
 
 func start_patrol() -> void:
+	if path == null or path.curve.point_count <= 0:return
+	
 	var travel_time = get_travel_duration()
-	var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-	tween.set_loops()
+	
+	_tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	_tween.set_loops()
 	
 	# If CLASSIC, use LINEAR (steady speed). If ACCELERATED, use SINE (smooth ramp up/down).
-	var trans_type = Tween.TRANS_SINE if acc_acceleration_enable else Tween.TRANS_LINEAR
+	var trans_type = Tween.TRANS_SINE if movement_type == MovementType.ACCELERATED else Tween.TRANS_LINEAR
 	
-	tween.tween_property(_path_follow, "progress_ratio", 1.0, travel_time)\
+	_tween.tween_property(_path_follow, "progress_ratio", 1.0, travel_time)\
 		.set_trans(trans_type)\
 		.set_ease(Tween.EASE_IN_OUT)
-	tween.tween_interval(wait_time)
+	_tween.tween_interval(wait_time)
 	
-	tween.tween_property(_path_follow, "progress_ratio", 0.0, travel_time)\
+	_tween.tween_property(_path_follow, "progress_ratio", 0.0, travel_time)\
 		.set_trans(trans_type)\
 		.set_ease(Tween.EASE_IN_OUT)
-	tween.tween_interval(wait_time)
+	_tween.tween_interval(wait_time)

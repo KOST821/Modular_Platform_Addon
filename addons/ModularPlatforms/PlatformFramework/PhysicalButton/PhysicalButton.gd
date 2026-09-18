@@ -4,9 +4,10 @@
 extends Trigger
 class_name PhysicalButton
 
+## How much time the animation should be.
+@export_custom(PROPERTY_HINT_NONE, "suffix:s") var press_time:float = 1.0
 ## How many pixels should the button go down.
 @export_custom(PROPERTY_HINT_NONE, "suffix:px") var offset:float = 10.0
-
 
 var is_pressed:bool = false
 
@@ -29,37 +30,45 @@ func _from_start() -> void:
 		use_point.area_exited.connect(body_exit)
 
 func body_enter(body:Node2D) -> void:
-	if body is CollisionObject2D and is_pressed: 
-		_bodies_pressing.append(body)
+	# 1. Guard clause: Ignore anything that isn't a physics object
+	if not body is CollisionObject2D:
 		return
-	elif body is CollisionObject2D:
-		is_pressed = true
+		
+	# 2. Add to tracking array if not already there
+	if not _bodies_pressing.has(body):
 		_bodies_pressing.append(body)
+		
+	# 3. If it wasn't pressed before, press it now
+	if not is_pressed:
+		is_pressed = true
 		pressed.emit(self)
 		toggle.emit(true, self)
-		if _tween and _tween.is_valid():
-			_tween.kill()
-		_tween = create_tween()
-		_tween.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-		var target_pos:float = started_pos.y + offset
-		_tween.tween_property(sprite,"position:y",target_pos,1.0)
+		_animate_button(started_pos.y + offset)
 
 func body_exit(body:Node2D) -> void:
 	if not is_pressed:
 		return
-	elif _bodies_pressing.has(body): _bodies_pressing.erase(body)
+		
+	if _bodies_pressing.has(body): 
+		_bodies_pressing.erase(body)
 	
+	# Clean up any deleted bodies (enemies that died on the button)
 	_bodies_pressing = _bodies_pressing.filter(func(b): return is_instance_valid(b))
 	
-	if ! _bodies_pressing.is_empty():
+	# If bodies are still on the button, do nothing
+	if not _bodies_pressing.is_empty():
 		return
+		
+	# The last body left, release the button
 	is_pressed = false
-	_bodies_pressing.clear()
 	released.emit(self)
 	toggle.emit(false, self)
+	_animate_button(started_pos.y)
+
+func _animate_button(target_y: float) -> void:
 	if _tween and _tween.is_valid():
 		_tween.kill()
+	
 	_tween = create_tween()
 	_tween.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-	var target_pos:float = started_pos.y
-	_tween.tween_property(sprite,"position:y",target_pos,1.0)
+	_tween.tween_property(sprite, "position:y", target_y, press_time)

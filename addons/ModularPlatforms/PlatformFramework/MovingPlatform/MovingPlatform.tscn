@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bbe0i0wdbmo7r" path="res://addons/ModularPlatforms/PlatformFramework/MovingPlatform/MovingPlatform.gd" id="1_q06lf"]
 [ext_resource type="Script" uid="uid://b205cvdqvwkkc" path="res://addons/ModularPlatforms/Components/hitbox_component.gd" id="2_hrpga"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hf0cu"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_du4dc"]
 resource_local_to_scene = true
 size = Vector2(32, 32)
 
@@ -18,7 +18,7 @@ collision_shape = NodePath("CollisionShape2D")
 attack = NodePath("HitBox/CollisionShape2D")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=132219436]
-shape = SubResource("RectangleShape2D_hf0cu")
+shape = SubResource("RectangleShape2D_du4dc")
 debug_color = Color(0, 0.6, 0.7019608, 0.41960785)
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=18360492]

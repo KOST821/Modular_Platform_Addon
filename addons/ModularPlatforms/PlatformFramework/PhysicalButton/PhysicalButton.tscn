@@ -3,14 +3,14 @@
 [ext_resource type="Script" uid="uid://bqk6535vm35bj" path="res://addons/ModularPlatforms/PlatformFramework/PhysicalButton/PhysicalButton.gd" id="1_4u77d"]
 [ext_resource type="Texture2D" uid="uid://ctwx6x40rbnip" path="res://addons/ModularPlatforms/PlatformFramework/PhysicalButton/Hit.png" id="2_65a4t"]
 
-
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_5p6vy"]
 radius = 2.0
 height = 22.0
 
-[node name="PhysicalButton" type="Node2D" unique_id=1366242800 node_paths=PackedStringArray("pressing_point", "sprite")]
+[node name="PhysicalButton" type="Node2D" unique_id=1366242800 node_paths=PackedStringArray("use_point", "sprite")]
 script = ExtResource("1_4u77d")
-pressing_point = NodePath("Area2D")
+press_time = null
+use_point = NodePath("Area2D")
 sprite = NodePath("Sprite2D")
 metadata/_custom_type_script = "uid://bqk6535vm35bj"
 

@@ -62,6 +62,17 @@ signal size_changed(width:int, height:int)
 		if is_node_ready():
 			_update_attack()
 
+@export_group("Region")
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var enable_region: bool = false:
+	set(value):
+		enable_region = value
+		_update_visuals()
+## The Rect of your sprite on the tileset.
+@export var rect: Rect2i:
+	set(value):
+		rect = value
+		_update_visuals()
+
 @export_group("One Way Collision", "col_")
 ## If [b]enabled[/b], characters can jump through the platform from the specified direction.
 @export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var col_enable: bool = false:
@@ -197,7 +208,10 @@ func _update_visuals() -> void:
 			if texture != null:
 				sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 				sprite.region_enabled = true
-				sprite.region_rect = Rect2(0, 0, texture_width, texture_height)
+				if enable_region:
+					sprite.region_rect = rect
+				else:
+					sprite.region_rect = Rect2(0, 0, texture_width, texture_height)
 		elif _is_animated and sprite is AnimatedSprite2D:
 			sprite.sprite_frames = spriteframes
 			if not Engine.is_editor_hint(): 

@@ -1,3 +1,17 @@
+# Preview
+
+![basic_platform_preview](VideoExamples/BasicPlatform_gif.gif)
+![break_platform_preview](VideoExamples/BreakPlatform_gif.gif)
+![move_platform_c_preview](VideoExamples/MovingPlatformCLASSIC_gif.gif)
+![move_platform_a_preview](VideoExamples/MovingPlatformACCELERATED_gif.gif)
+![move_platform_g_preview](VideoExamples/MovingPlatformGRAPH_gif.gif)
+![graph](VideoExamples/graph.gif)
+![trigger_move_platform_c_preview](VideoExamples/TriggeredMovingPlatformCLASSIC_gif.gif)
+![trigger_move_platform_a_preview](VideoExamples/TriggeredMovingPlatformACCELERATED_gif.gif)
+![trigger_move_platform_g_preview](VideoExamples/TriggeredMovingPlatformGRAPH_gif.gif)
+![fan_x](VideoExamples/FanX_gif.gif)
+![fan_y](VideoExamples/FanY_gif.gif)
+
 # 🧱 Godot 4 Modular Platform Addon
 
 Welcome to the **Modular Platform Asset Pack**! This toolkit is built on a highly scalable, component-based architecture designed for Godot 4. It allows level designers to create complex, interactive, and hazardous platforms without writing a single line of code.
@@ -8,8 +22,7 @@ Welcome to the **Modular Platform Asset Pack**! This toolkit is built on a highl
 
 Every platform in this pack inherits from a core `@abstract` tool script (`Platform`). This means all sizing, hazard logic, and tiling happen automatically in the editor.
 
-1. **Do not scale nodes manually in the 2D viewport!** Always use the `Texture Width` and `Texture Height` sliders in the inspector. The script handles the rest safely.
-2. Ensure Godot's `@tool` scripts are running. If platforms aren't updating visually in the editor, click **Project -> Reload Current Project**.
+**Do not scale nodes manually in the 2D viewport!** Always use the `Texture Width` and `Texture Height` sliders in the inspector. The script handles the rest safely.
 
 ---
 
