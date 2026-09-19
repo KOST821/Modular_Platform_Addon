@@ -46,6 +46,13 @@ signal size_changed(width:int, height:int)
 		spriteframes = value
 		_update_visuals()
 
+@export_group("Enable auto-texture sizing")
+## If [b]true[/b], the collision shape and sprite will auto-size themselves to the matching texture width and height.
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var enable_texture_sizing: bool = false:
+	set(value):
+		enable_texture_sizing = value
+		_update_visuals()
+
 ## The textures width, if greater than the original it adds a second texture.
 @export_range(0, 128, 1, "or_greater", "suffix:px") var texture_width: int = 32:
 	set(value):
@@ -62,11 +69,12 @@ signal size_changed(width:int, height:int)
 		if is_node_ready():
 			_update_attack()
 
-@export_group("Region")
+@export_subgroup("Region")
 @export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var enable_region: bool = false:
 	set(value):
 		enable_region = value
 		_update_visuals()
+
 ## The Rect of your sprite on the tileset.
 @export var rect: Rect2i:
 	set(value):
@@ -193,10 +201,6 @@ func _ready() -> void:
 		if is_attacking and attack != null:
 			attack.set_deferred("disabled", true)
 
-## A clean replacement for _ready() intended for child scripts.
-func _from_start() -> void: 
-	pass
-
 func _update_visuals() -> void:
 	if not is_node_ready():
 		return
@@ -207,11 +211,12 @@ func _update_visuals() -> void:
 			sprite.texture = texture
 			if texture != null:
 				sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-				sprite.region_enabled = true
-				if enable_region:
-					sprite.region_rect = rect
-				else:
-					sprite.region_rect = Rect2(0, 0, texture_width, texture_height)
+				if enable_texture_sizing:
+					sprite.region_enabled = true
+					if enable_region:
+						sprite.region_rect = rect
+					else:
+						sprite.region_rect = Rect2(0, 0, texture_width, texture_height)
 		elif _is_animated and sprite is AnimatedSprite2D:
 			sprite.sprite_frames = spriteframes
 			if not Engine.is_editor_hint(): 
@@ -255,15 +260,16 @@ func _update_visuals() -> void:
 					active_h = texture_width
 		
 		# Apply sizes based on the potentially swapped dimensions
-		if shape is RectangleShape2D:
-			shape.size = Vector2(active_w, active_h)
-		elif shape is CircleShape2D:
-			shape.radius = texture_width / 2.0
-		elif shape is CapsuleShape2D:
-			shape.radius = active_w / 2.0
-			shape.height = active_h
-		else:
-			push_warning("The ", collision_shape.name, "'s shape (", shape.get_class(), ") is not supported by Platform auto-sizing.")
+		if !enable_texture_sizing:
+			if shape is RectangleShape2D:
+				shape.size = Vector2(active_w, active_h)
+			elif shape is CircleShape2D:
+				shape.radius = texture_width / 2.0
+			elif shape is CapsuleShape2D:
+				shape.radius = active_w / 2.0
+				shape.height = active_h
+			else:
+				push_warning("The ", collision_shape.name, "'s shape (", shape.get_class(), ") is not supported by Platform auto-sizing.")
 	size_changed.emit(texture_width,texture_height)
 
 func _update_attack() -> void:
@@ -314,6 +320,7 @@ func _update_type_visibility() -> void:
 		attack.set_deferred("disabled", not is_attacking)
 
 func _process(delta: float) -> void:
+	_update(delta)
 	# Stop this from running in the editor and eating CPU
 	if Engine.is_editor_hint(): return
 	
@@ -335,3 +342,17 @@ func _process(delta: float) -> void:
 				_is_active = false
 				_active_timer = active_time
 				attack.set_deferred("disabled", true) # Turn hazard OFF
+
+func _physics_process(delta: float) -> void:
+	_physics_update(delta)
+
+#----------------------Inharitance Functions-----------------------
+
+## A [b]_ready[/b] replacement. Do not use [b]_ready[/b]!
+func _from_start() -> void: pass
+
+## A [b]_process[/b] replacement. Do not use [b]_process[/b]!
+func _update(_delta:float) -> void:pass
+
+## A [b]_physics_process[/b] replacement. Do not use [b]_physics_process[/b]!
+func _physics_update(_delta:float) -> void:pass

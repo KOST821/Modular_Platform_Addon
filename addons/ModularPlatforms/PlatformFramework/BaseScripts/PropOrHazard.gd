@@ -108,6 +108,7 @@ func _get_configuration_warnings() -> PackedStringArray:
 	return warnings
 
 func _ready() -> void:
+	_from_start()
 	if not Engine.is_editor_hint():
 		if hitbox_component != null:
 			hitbox_component.damage = damage
@@ -121,7 +122,6 @@ func _ready() -> void:
 		
 		_update_visuals()
 		_update_hazard_state()
-		_from_start()
 
 func _update_visuals() -> void:
 	if not is_node_ready(): return
@@ -175,9 +175,13 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	_physics_update(delta)
 
-## A replacement of [b]_ready[/b]
-func _from_start()->void:pass
-## A replacement of [b]_process[/b]
-func _update(delta:float)->void:pass
-## A replacement of [b]_physics_process[/b]
-func _physics_update(delta:float)->void:pass
+#----------------------Inharitance Functions-----------------------
+
+## A [b]_ready[/b] replacement. Do not use [b]_ready[/b]!
+func _from_start() -> void: pass
+
+## A [b]_process[/b] replacement. Do not use [b]_process[/b]!
+func _update(_delta:float) -> void:pass
+
+## A [b]_physics_process[/b] replacement. Do not use [b]_physics_process[/b]!
+func _physics_update(_delta:float) -> void:pass

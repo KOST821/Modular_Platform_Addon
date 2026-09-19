@@ -41,5 +41,19 @@ func _get_configuration_warnings() -> PackedStringArray:
 func _ready() -> void:
 	_from_start()
 
+func _physics_process(delta: float) -> void:
+	_physics_update(delta)
 
+func _process(delta: float) -> void:
+	_update(delta)
+
+#----------------------Inharitance Functions-----------------------
+
+## A [b]_ready[/b] replacement. Do not use [b]_ready[/b]!
 func _from_start() -> void: pass
+
+## A [b]_process[/b] replacement. Do not use [b]_process[/b]!
+func _update(_delta:float) -> void:pass
+
+## A [b]_physics_process[/b] replacement. Do not use [b]_physics_process[/b]!
+func _physics_update(_delta:float) -> void:pass

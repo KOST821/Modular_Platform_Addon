@@ -24,6 +24,9 @@ It is essential to know how to use the **addon**. In this file I will provide yo
 
 The addon is based on 3 scripts that all nodes extend, [Platform](PlatformFramework/BaseScripts/PlatformBaseScript.gd), [Trigger](PlatformFramework/BaseScripts/Triggers.gd) and [Prop or Hazard](PlatformFramework/BaseScripts/PropOrHazard.gd), that way most of the platforms, triggers and props are in need of the same setup!
 
+> [!NOTE]
+> To achieve this you should not use *_process*, **_physics_process** or ***_ready*** functions. You should use *_update*, **_physics_update** and ***_from_start***!
+
 ## Platforms <img width="24" height="24" alt="pltf" src="PlatformFramework/BaseScripts/gate.svg"/>
 
 This is the base setup for all generic platforms, inheriting from `PlatformBaseScript.gd`.
@@ -112,6 +115,9 @@ This node inherits from `Platform.gd` and follows a specific path.
 
 > [!NOTE]
 > Your [Path2D](https://docs.godotengine.org/en/stable/classes/class_path2d.html) MUST BE a **sibling** of the platform!
+
+> [!TIP]
+> Pressing play resets the animation, while stop terminates it!
 
 ### Curve explanation
 
