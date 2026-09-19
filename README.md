@@ -12,6 +12,9 @@
 ![fan_x](VideoExamples/FanX_gif.gif)
 ![fan_y](VideoExamples/FanY_gif.gif)
 
+> [!NOTE]
+> Assets are not included!
+
 # 🧱 Godot 4 Modular Platform Addon
 
 Welcome to the **Modular Platform Asset Pack**! This toolkit is built on a highly scalable, component-based architecture designed for Godot 4. It allows level designers to create complex, interactive, and hazardous platforms without writing a single line of code.
