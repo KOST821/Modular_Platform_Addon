@@ -80,16 +80,21 @@ func _ready() -> void:
 	
 	_collision_shape = CollisionShape2D.new()
 	
+	var offset_centre:Vector2 = Vector2.ZERO
+	
 	if damage_see_distance.x == damage_see_distance.y:
 		_collision_shape.shape = CircleShape2D.new()
 		_collision_shape.shape.radius = damage_see_distance.x
+		offset_centre.x = damage_see_distance.x
 	else:
 		_collision_shape.shape = RectangleShape2D.new()
 		_collision_shape.shape.size.x = damage_see_distance.x
 		_collision_shape.shape.size.y = damage_see_distance.y
+		offset_centre = damage_see_distance
 	
 	_damage_area.add_child(_collision_shape)
 	_damage_area.position = attack_offset
+	_collision_shape.position = offset_centre
 
 func _process(delta: float) -> void:
 	_update(delta)
@@ -127,8 +132,8 @@ func _setup_stats() -> void:
 ## A [b]_ready[/b] replacement. Do not use [b]_ready[/b]!
 func _from_start() -> void: pass
 
-## A _process replacement. Do not use _process!
+## A [b]_process[/b] replacement. Do not use [b]_process[/b]!
 func _update(_delta:float) -> void:pass
 
-## A _physics_process replacement. Do not use _physics_process!
+## A [b]_physics_process[/b] replacement. Do not use [b]_physics_process[/b]!
 func _physics_update(_delta:float) -> void:pass
