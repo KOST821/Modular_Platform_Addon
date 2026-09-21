@@ -120,7 +120,7 @@ signal size_changed(width:int, height:int)
 			_update_attack()
 			
 ## The helth your Hazard will reduce.
-@export_range(0.0, 100.0, 0.1, "or_greater", "hide_control", "suffix:hp") var damage: float = 5
+@export_range(0.0, 100.0, 0.1, "or_greater", "hide_control", "suffix:hp") var damage: float = 5.0
 ## The time that the Hazard will wait untill it activates.
 @export_range(0.1, 10.0, 0.1, "or_greater", "hide_control", "suffix:sec") var activate_time: float = 0.2
 ## The time that the Hazard will be active.

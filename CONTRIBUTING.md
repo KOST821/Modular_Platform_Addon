@@ -24,15 +24,53 @@ Consistency is mandatory. Name your files exactly like this:
 
 To keep the codebase scalable and predictable, strict inheritance is mandatory:
 
+### Architecture
+
 - **Platforms**: All new platforms must inherit from the base Platform class (or an existing platform subclass).
 
-- **Hazards, Props, and Triggers**: The exact same inheritance rule applies. You must extend the respective base class for the object type you are creating. Do not create isolated, standalone scripts for these objects.
+- **Hazards, Props, and Triggers**: The exact same inheritance rule applies. You must extend the respective base class for the object type you are creating. Do not create isolated, standalone scripts for these objects. *Either you make a **prop** or a **hazard** you should inherit from PropOrHazard*.
+
+### Code Standards
+
+- **Class Names**: Always name your `class_name` to a valid and matching name using  ***PascalCase*** (e.g., MovingPlatform, LevelManager).
+
+- **Naming variables**: Variables must have an understanding name, avoid using names like *a*, *b*, and must use a **snake_case** (e.g., platform_break).
+
+- **The underscore rule**: Variables that should not be modified by any other script should start their name with an underscore (e.g. _tween ). *That rule does not apply on `@export` variables.
+
+- **Export variables**: Use `@export` variables wisely and with description! If an `@export` variable has a range of numbers it should take you should use the `@export_range` and if it has an *unit of measurement* you should use `@export_custom(PROPERTY_HINT_NONE, "suffix:unit of measurement")`.
+
+```GDScript
+## This is a description for the following variable.
+@export var desc:String
+
+# This is NOT a description for the following variable.
+@export var desc:String
+
+## If damage has unit of measurement the hp.
+@export_custom(PROPERTY_HINT_NONE, "suffix:hp") var damage: float = 5.0:
+
+#If damage can be 0.0 to 100.0.
+@export_range(0.0, 100.0) var damage: float = 5.0
+
+#If damage can be from 0.0 to + ∞ (0.1 is the step).
+@export_range(0.0, 100.0, 0.1, "or_greater", "hide_control") var damage: float = 5.0
+
+#If damage can be from - ∞ to 100.0 (0.1 is the step).
+@export_range(0.0, 100.0, 0.1, "or_less", "hide_control") var damage: float = 5.0
+
+#If damage has a range and unit of measurement the hp (0.1 is the step).
+@export_range(0.0, 100.0, 0.1, "suffix:hp") var damage: float = 5.0
+
+#You can also mix and match!
+@export_range(0.0, 100.0, 0.1, "or_greater", "hide_control", "suffix:hp") var damage: float = 5.0
+```
 
 - **Use UIDs**: Always use uid for referencing files to prevent path breakage if assets are moved.
 
 ## Folder Structure
 
-Place your files in the correct directories. Do not dump everything in the root folder.
+Place your files in the correct directories. Do not dump everything in the root folder. Main directory where all parent folders should be is ***addons/ModularPlatforms/PlatformFramework/***
 
 - **Strict Isolation**: Every single new platform, hazard, prop, or trigger must have its own dedicated folder. Do not mix assets from different objects into the same directory.
 
@@ -61,6 +99,6 @@ When you open a PR, you MUST include:
 
 A brief description of what you added or fixed.
 
-At least one screenshot of your asset rendered or placed inside the Godot engine to prove it works.
+(***Optional***) At least one screenshot of your asset rendered or placed inside the Godot engine to prove it works. (To speed up the merging process).
 
 If your PR does not meet these guidelines, I will request changes before merging it.
